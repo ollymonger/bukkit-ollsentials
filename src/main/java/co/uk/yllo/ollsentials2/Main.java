@@ -55,7 +55,7 @@ public final class Main extends JavaPlugin implements Listener {
             addPermission("admin", "admin.sign");
             addPermission("admin", "admin.hammer");
             addPermission("admin", "admin.name");
-            addPermission("guest", "basic.sign");
+            addPermission("guest", "basic.sign"); // signs
             createGroup("member", "&7MEMBER");
             addPermission("member", "basic.home");
             addPermission("member", "basic.sign");

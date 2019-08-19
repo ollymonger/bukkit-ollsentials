@@ -1,6 +1,13 @@
 package co.uk.yllo.ollsentials2;
 
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.*;
 import org.bukkit.block.data.type.Fire;
@@ -37,7 +44,7 @@ public final class Main extends JavaPlugin implements Listener {
         getLogger().info("Plugin: Ollsentials now enabled");
         getLogger().info("Plugin Version: " + getDescription().getVersion());
         getLogger().info("Last Updated: (19/08/19)");
-        getLogger().info("Most Recent Update: OnEnable calls create group(s) if no groups are present.");
+        getLogger().info("Most Recent Update: Buy/Sell signs implemented.");
         ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups");
         if (!allGroups.contains("group_guest")) { //if no groups are set up, this is default value for users
             createGroup("admin", "&aADMIN");
@@ -48,6 +55,7 @@ public final class Main extends JavaPlugin implements Listener {
             addPermission("admin", "admin.sign");
             addPermission("admin", "admin.hammer");
             addPermission("admin", "admin.name");
+            addPermission("guest", "basic.sign"); // signs
             createGroup("member", "&7MEMBER");
             addPermission("member", "basic.home");
             addPermission("member", "basic.sign");
@@ -141,6 +149,7 @@ public final class Main extends JavaPlugin implements Listener {
         allUsers.set("user_" + id + ".id", id.toString());
         allUsers.set("user_" + id + ".userName", p.getName());
         allUsers.set("user_" + id + ".newName", p.getName());
+        allUsers.set("user_" + id + ".balance", 0);
         allUsers.set("user_" + id + ".lastLogin", lastLogin);
         allUsers.set("user_" + id + ".group", "guest");
         allUsers.set("user_" + id + ".homepos.world", world);
@@ -258,13 +267,103 @@ public final class Main extends JavaPlugin implements Listener {
         }
     }
 
-    private void launchFirework(Player player, int speed) {
-        Firework fw = (Firework) player.getWorld().spawn(player.getEyeLocation(), Firework.class);
-        FireworkMeta meta = fw.getFireworkMeta();
-        meta.addEffect(FireworkEffect.builder().flicker(false).trail(true).with(FireworkEffect.Type.BALL).withColor(Color.ORANGE).withFade(Color.RED).build());
-        fw.setFireworkMeta(meta);
-        fw.setVelocity(player.getLocation().getDirection().multiply(speed));
-        player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 200, 1));
+    @EventHandler
+    public void onPlayerCreateSign(BlockPlaceEvent e) {
+        ConfigurationSection user = this.getConfig().getConfigurationSection("users").getConfigurationSection("user_" + e.getPlayer().getUniqueId().toString());
+        String userGroup = user.getString(".group");
+        ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups").getConfigurationSection("group_" + userGroup);
+        List<String> groupPermission = allGroups.getStringList(".groupPermissions");
+        Block blockType = e.getBlockPlaced();
+        Player player = e.getPlayer();
+        if (groupPermission.contains("admin.sign")) {
+            if (blockType.getType() == Material.OAK_SIGN) {
+                player.sendMessage(prefix + " Sign set up succesfully.");
+            }
+        }
+    }
+
+    @EventHandler
+    public void onSignChanged(SignChangeEvent e) {
+        ConfigurationSection user = this.getConfig().getConfigurationSection("users").getConfigurationSection("user_" + e.getPlayer().getUniqueId().toString());
+        String userGroup = user.getString(".group");
+        ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups").getConfigurationSection("group_" + userGroup);
+        List<String> groupPermission = allGroups.getStringList(".groupPermissions");
+        if (groupPermission.contains("admin.sign")) {
+            String[] lines = e.getLines();
+            for (int i = 0; i < 4; i++) {
+                String line = lines[i];
+                line = ChatColor.translateAlternateColorCodes('&', line);
+                e.setLine(i, line);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent e) {
+        ConfigurationSection user = this.getConfig().getConfigurationSection("users").getConfigurationSection("user_" + e.getPlayer().getUniqueId().toString());
+        String userGroup = user.getString(".group");
+        ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups").getConfigurationSection("group_" + userGroup);
+        List<String> groupPermission = allGroups.getStringList(".groupPermissions");
+        Player player = e.getPlayer();
+        if (groupPermission.contains("basic.sign")) {
+            if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                if (e.getClickedBlock().getState() instanceof Sign) {
+                    Sign sign = (Sign) e.getClickedBlock().getState();
+                    if (sign.getLine(0).contains("[BUY]") || sign.getLine(0).contains("[buy]")) { //checks if a buy sign
+                        if (!sign.getLine(1).isEmpty()) { // ALL 4 lines have to have something in for this to work.
+                            if (!sign.getLine(2).isEmpty()) {
+                                if (!sign.getLine(3).isEmpty()) {
+                                    Material getMaterial = Material.getMaterial(sign.getLine(1).toUpperCase());
+                                    String getAmount = sign.getLine(2);
+                                    String price = sign.getLine(3);
+                                    int userBalance = user.getInt(".balance");
+                                    if (userBalance > Integer.valueOf(price)) {
+                                        player.getInventory().addItem(new ItemStack(getMaterial, Integer.valueOf(getAmount)));
+                                        int result = userBalance - Integer.valueOf(price);
+                                        user.set(".balance", result);
+                                        saveConfig();
+                                    } else {
+                                        player.sendMessage(prefix + " You don't have enough balance!");
+                                    }
+                                } else {
+                                    getLogger().info("Sign incorrectly set up");
+                                }
+                            } else {
+                                getLogger().info("Sign incorrectly set up");
+                            }
+                        } else {
+                            getLogger().info("Sign incorrectly set up");
+                        }
+                    } //buy sign
+                    if (sign.getLine(0).contains("[SELL]") || sign.getLine(0).contains("[sell]")) { //checks if a sell sign
+                        if (!sign.getLine(1).isEmpty()) { // ALL 4 lines have to have something in for this to work.
+                            if (!sign.getLine(2).isEmpty()) {
+                                if (!sign.getLine(3).isEmpty()) {
+                                    Material getMaterial = Material.getMaterial(sign.getLine(1).toUpperCase());
+                                    String getAmount = sign.getLine(2);
+                                    String price = sign.getLine(3);
+                                    int userBalance = user.getInt(".balance");
+                                    if (player.getInventory().getItemInMainHand().getType() == getMaterial) {
+                                        player.getInventory().removeItem(new ItemStack(getMaterial, Integer.valueOf(getAmount)));
+                                        int result = userBalance + Integer.valueOf(price);
+                                        user.set(".balance", result);
+                                        saveConfig();
+                                    } else {
+                                        player.sendMessage(prefix + " You need to have the item in your hand!");
+                                    }
+                                } else {
+                                    getLogger().info("Sign incorrectly set up");
+                                }
+                            } else {
+                                getLogger().info("Sign incorrectly set up");
+                            }
+                        } else {
+                            getLogger().info("Sign incorrectly set up");
+                        }
+                    } // sell sign
+                }
+            }
+        }
     }
 
     @EventHandler
@@ -286,6 +385,15 @@ public final class Main extends JavaPlugin implements Listener {
                 player.sendMessage(prefix + " You have left the spawn protection radius!");
             }
         }
+    }
+
+    private void launchFirework(Player player, int speed) {
+        Firework fw = (Firework) player.getWorld().spawn(player.getEyeLocation(), Firework.class);
+        FireworkMeta meta = fw.getFireworkMeta();
+        meta.addEffect(FireworkEffect.builder().flicker(false).trail(true).with(FireworkEffect.Type.BALL).withColor(Color.ORANGE).withFade(Color.RED).build());
+        fw.setFireworkMeta(meta);
+        fw.setVelocity(player.getLocation().getDirection().multiply(speed));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 200, 1));
     }
 
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -431,7 +539,7 @@ public final class Main extends JavaPlugin implements Listener {
                         } else {
                             allUsers.set("user_" + targetUUID + ".newName", args[1]);
                             sender.sendMessage(prefix + " You set: " + args[0] + "'s name to: " + ChatColor.translateAlternateColorCodes('&', msg));
-                            target.sendMessage(prefix + " " + sender.getName() + " has set your name to: "+args[1]);
+                            target.sendMessage(prefix + " " + sender.getName() + " has set your name to: " + args[1]);
                             target.setPlayerListName(ChatColor.translateAlternateColorCodes('&', msg));
                             saveConfig();
                         }

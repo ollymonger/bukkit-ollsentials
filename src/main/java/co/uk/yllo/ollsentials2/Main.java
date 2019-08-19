@@ -45,27 +45,6 @@ public final class Main extends JavaPlugin implements Listener {
         getLogger().info("Plugin Version: " + getDescription().getVersion());
         getLogger().info("Last Updated: (19/08/19)");
         getLogger().info("Most Recent Update: Buy/Sell signs implemented.");
-        ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups");
-        if (!allGroups.contains("group_guest")) { //if no groups are set up, this is default value for users
-            createGroup("admin", "&aADMIN");
-            addPermission("admin", "chat.color");
-            addPermission("admin", "admin.rights");
-            addPermission("admin", "admin.groups");
-            addPermission("admin", "admin.basic");
-            addPermission("admin", "admin.sign");
-            addPermission("admin", "admin.hammer");
-            addPermission("admin", "admin.name");
-            addPermission("guest", "basic.sign"); // signs
-            createGroup("member", "&7MEMBER");
-            addPermission("member", "basic.home");
-            addPermission("member", "basic.sign");
-            createGroup("guest", "&6GUEST");
-            addPermission("guest", "basic.home");
-            addPermission("guest", "basic.sign");
-            getLogger().info("All default groups now set.");
-        } else {
-            getLogger().info("All groups loaded.");
-        }
         getData();
     }
 
@@ -110,6 +89,28 @@ public final class Main extends JavaPlugin implements Listener {
         spawn.set("pitch", 0);
         this.getConfig().createSection("users");
         this.getConfig().createSection("groups");
+
+        List<String> allGroups = this.getConfig().getStringList("groups");
+        if (allGroups.isEmpty()) { //if no groups are set up, this is default value for users
+            createGroup("admin", "&aADMIN");
+            addPermission("admin", "chat.color");
+            addPermission("admin", "admin.rights");
+            addPermission("admin", "admin.groups");
+            addPermission("admin", "admin.basic");
+            addPermission("admin", "admin.sign");
+            addPermission("admin", "admin.hammer");
+            addPermission("admin", "admin.name");
+            addPermission("admin", "basic.sign");
+            createGroup("member", "&7MEMBER");
+            addPermission("member", "basic.home");
+            addPermission("member", "basic.sign");
+            createGroup("guest", "&6GUEST");
+            addPermission("guest", "basic.home");
+            addPermission("guest", "basic.sign");
+            getLogger().info("All default groups now set.");
+        } else {
+            getLogger().info("All groups loaded.");
+        }
 
         getLogger().info("Config successfully set up!");
         saveConfig();

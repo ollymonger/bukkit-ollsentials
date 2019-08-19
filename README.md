@@ -10,15 +10,15 @@ I made this plugin so that people only have to download one plugin for a permiss
 Essentials plugin for a semi-vanilla experience.
 
 ## permissions:
-⋅⋅*chat.color - talk in colour in chat
-⋅⋅*admin.rights - admin commands (BAN,UNBAN, KICK)
-⋅⋅*admin.basic - basic admin commands (set spawn, set name, teleport players)
-⋅⋅*admin.group - group commands for admin (creategroup, addpermissions, addusertogroup, removeusertogroup)
-⋅⋅*admin.sign - create signs ([BUY], [SELL])
-⋅⋅*admin.hammer - lets you destroy/place blocks in spawn area.
-⋅⋅*admin.name - lets you set your name/other player's names
-⋅⋅*vip.name - lets you set your name.
-⋅⋅*basic.home - home commands to set home, use home and use /spawn command.
-⋅⋅*basic.sign - use of signs (BUY AND SELL).
+⋅⋅* chat.color - talk in colour in chat
+⋅⋅* admin.rights - admin commands (BAN,UNBAN, KICK)
+⋅⋅* admin.basic - basic admin commands (set spawn, set name, teleport players)
+⋅⋅* admin.group - group commands for admin (creategroup, addpermissions, addusertogroup, removeusertogroup)
+⋅⋅* admin.sign - create signs ([BUY], [SELL])
+⋅⋅* admin.hammer - lets you destroy/place blocks in spawn area.
+⋅⋅* admin.name - lets you set your name/other player's names
+⋅⋅* vip.name - lets you set your name.
+⋅⋅* basic.home - home commands to set home, use home and use /spawn command.
+⋅⋅* basic.sign - use of signs (BUY AND SELL).
 
 ### 19/08/2019 - Updated plugin to 1.14.4 > OnEnable now calls all groups to be created > command /name now functional for admins and vips

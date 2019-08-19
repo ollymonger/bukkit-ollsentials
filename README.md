@@ -23,4 +23,5 @@ Essentials plugin for a semi-vanilla experience.
 
 ### 19/08/2019 - Updated plugin to 1.14.4 > OnEnable now calls all groups to be created > command /name now functional for admins and vips
 ### 19/08/2019 - Buy/Sell signs now implemented.
+### 19/08/2019 - Players can no longer place/break blocks in spawn radius.
 

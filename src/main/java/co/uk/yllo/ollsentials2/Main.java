@@ -4,6 +4,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -269,21 +270,6 @@ public final class Main extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onPlayerCreateSign(BlockPlaceEvent e) {
-        ConfigurationSection user = this.getConfig().getConfigurationSection("users").getConfigurationSection("user_" + e.getPlayer().getUniqueId().toString());
-        String userGroup = user.getString(".group");
-        ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups").getConfigurationSection("group_" + userGroup);
-        List<String> groupPermission = allGroups.getStringList(".groupPermissions");
-        Block blockType = e.getBlockPlaced();
-        Player player = e.getPlayer();
-        if (groupPermission.contains("admin.sign")) {
-            if (blockType.getType() == Material.OAK_SIGN) {
-                player.sendMessage(prefix + " Sign set up succesfully.");
-            }
-        }
-    }
-
-    @EventHandler
     public void onSignChanged(SignChangeEvent e) {
         ConfigurationSection user = this.getConfig().getConfigurationSection("users").getConfigurationSection("user_" + e.getPlayer().getUniqueId().toString());
         String userGroup = user.getString(".group");
@@ -306,8 +292,9 @@ public final class Main extends JavaPlugin implements Listener {
         ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups").getConfigurationSection("group_" + userGroup);
         List<String> groupPermission = allGroups.getStringList(".groupPermissions");
         Player player = e.getPlayer();
-        if (groupPermission.contains("basic.sign")) {
-            if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+        if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            if (groupPermission.contains("basic.sign")) {
+
                 if (e.getClickedBlock().getState() instanceof Sign) {
                     Sign sign = (Sign) e.getClickedBlock().getState();
                     if (sign.getLine(0).contains("[BUY]") || sign.getLine(0).contains("[buy]")) { //checks if a buy sign
@@ -384,6 +371,39 @@ public final class Main extends JavaPlugin implements Listener {
                 outOfSpawnProtection.add(player.getName());
                 player.getWorld().setPVP(true);
                 player.sendMessage(prefix + " You have left the spawn protection radius!");
+            }
+        }
+    }
+
+    @EventHandler
+    public void checkBlockPlaced(BlockPlaceEvent blockPlaceEvent) {
+        Player player = blockPlaceEvent.getPlayer();
+        ConfigurationSection user = this.getConfig().getConfigurationSection("users").getConfigurationSection("user_" + player.getUniqueId().toString());
+        String userGroup = user.getString(".group");
+        ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups");
+        ConfigurationSection specificGroup = allGroups.getConfigurationSection("group_" + userGroup);
+        List<String> groupPermission = specificGroup.getStringList(".groupPermissions");
+        if (!groupPermission.contains("admin.hammer")) {
+            if (player.getLocation().distanceSquared(player.getWorld().getSpawnLocation()) < Math.pow(getServer().getSpawnRadius(), 3)) {
+                blockPlaceEvent.setCancelled(true);
+                player.sendMessage(prefix + " You cannot place this block!");
+
+            }
+        }
+    }
+
+    @EventHandler
+    public void checkBlockBroken(BlockBreakEvent blockBreakEvent) {
+        Player player = blockBreakEvent.getPlayer();
+        ConfigurationSection user = this.getConfig().getConfigurationSection("users").getConfigurationSection("user_" + player.getUniqueId().toString());
+        String userGroup = user.getString(".group");
+        ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups");
+        ConfigurationSection specificGroup = allGroups.getConfigurationSection("group_" + userGroup);
+        List<String> groupPermission = specificGroup.getStringList(".groupPermissions");
+        if (!groupPermission.contains("admin.hammer")) {
+            if (player.getLocation().distanceSquared(player.getWorld().getSpawnLocation()) < Math.pow(getServer().getSpawnRadius(), 3)) {
+                blockBreakEvent.setCancelled(true);
+                player.sendMessage(prefix + " You cannot break this block!");
             }
         }
     }

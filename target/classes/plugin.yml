@@ -1,0 +1,35 @@
+name: Ollsentials2
+version: 1.0-SNAPSHOT
+main: co.uk.yllo.ollsentials2.Main
+api-version: 1.13
+authors: [ollymonger]
+description: Plugin for ollsential commands
+website: www.yllo.co.uk
+commands:
+  setspawn:
+    description: set your server spawn point.
+    usage: /<command>
+  spawn:
+    description: return to the set spawn point.
+    usage: /<command>
+  sethome:
+    description: set your home point.
+    usage: /<command>
+  home:
+    description: set your home point.
+    usage: /<command>
+  creategroup:
+    description: creating a new user group.
+    usage: /<command> <newgroup>
+  addusertogroup:
+    description: add a new user to a group.
+    usage: /<command> <newgroup>
+  removeuserfromgroup:
+    description: remove user from group.
+    usage: /<command> <username> <groupname>
+  addpermission:
+    description: add permission to group.
+    usage: /<command> <username> <groupname>
+  name:
+      description: changes your displayname.
+      usage: /<command> <username>

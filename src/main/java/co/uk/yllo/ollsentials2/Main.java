@@ -297,7 +297,6 @@ public final class Main extends JavaPlugin implements Listener {
         Player player = e.getPlayer();
         if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
             if (groupPermission.contains("basic.sign")) {
-
                 if (e.getClickedBlock().getState() instanceof Sign) {
                     Sign sign = (Sign) e.getClickedBlock().getState();
                     if (sign.getLine(0).contains("[BUY]") || sign.getLine(0).contains("[buy]")) { //checks if a buy sign
@@ -353,9 +352,10 @@ public final class Main extends JavaPlugin implements Listener {
                         }
                     } // sell sign
                     if (sign.getLine(0).contains("[PLAY]") || sign.getLine(0).contains("[play]")) {
-                        if(sign.getLine(1).contains("TARGET") || sign.getLine(1).contains("target")) {
+                        if (sign.getLine(1).contains("TARGET") || sign.getLine(1).contains("target")) {
                             String price = sign.getLine(2);
                             int userBalance = user.getInt(".balance");
+                            Location signLoc = sign.getBlock().getLocation().getBlock().getLocation();
                             if (!arrowGameList.contains(player.getName())) {
                                 player.sendMessage(prefix + " Welcome to target practice!");
                                 Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> player.sendMessage(prefix + " Your points will add up and give you an amount which will go into your balance!"), 5L);
@@ -397,6 +397,18 @@ public final class Main extends JavaPlugin implements Listener {
                 player.sendMessage(prefix + " You have left the spawn protection radius!");
             }
         }
+        if (arrowGameList.contains(player.getName())) {
+            if (e.getFrom().getBlockX() != e.getTo().getBlockX()) {
+                player.sendMessage(prefix + " You're still playing the minigame! Right-click the sign to finish!");
+
+                player.teleport(e.getFrom().getBlock().getLocation());
+            }
+            if (e.getFrom().getBlockY() != e.getTo().getBlockY()) {
+                player.sendMessage(prefix + " You're still playing the minigame! Right-click the sign to finish!");
+
+                player.teleport(e.getFrom().getBlock().getLocation());
+            }
+        }
     }
 
     @EventHandler
@@ -404,14 +416,14 @@ public final class Main extends JavaPlugin implements Listener {
         Player shooter = (Player) e.getEntity().getShooter();
         ConfigurationSection user = this.getConfig().getConfigurationSection("users").getConfigurationSection("user_" + shooter.getUniqueId().toString());
 
-        if(arrowGameList.contains(shooter.getName())) {
+        if (arrowGameList.contains(shooter.getName())) {
             if (e.getHitBlock().getType() == Material.WHITE_WOOL) {
                 Location shooterLoc = new Location(shooter.getWorld(), shooter.getLocation().getX(), shooter.getLocation().getY(), shooter.getLocation().getZ());
                 shooter.playSound(shooterLoc, Sound.ENTITY_PLAYER_LEVELUP, 1.18F, 1);
                 shooter.sendMessage(prefix + " You just got 5 points!");
                 int points = 5;
                 int balance = user.getInt(".balance");
-                user.set(".balance",balance+points);
+                user.set(".balance", balance + points);
                 saveConfig();
             }
             if (e.getHitBlock().getType() == Material.RED_WOOL) {
@@ -420,7 +432,7 @@ public final class Main extends JavaPlugin implements Listener {
                 shooter.sendMessage(prefix + " You just got 10 points!");
                 int points = 10;
                 int balance = user.getInt(".balance");
-                user.set(".balance",balance+points);
+                user.set(".balance", balance + points);
                 saveConfig();
             }
             if (e.getHitBlock().getType() == Material.GREEN_WOOL) {
@@ -429,7 +441,7 @@ public final class Main extends JavaPlugin implements Listener {
                 shooter.sendMessage(prefix + " You just got 20 points!");
                 int points = 20;
                 int balance = user.getInt(".balance");
-                user.set(".balance",balance+points);
+                user.set(".balance", balance + points);
                 saveConfig();
             }
             if (e.getHitBlock().getType() == Material.YELLOW_WOOL) {
@@ -438,7 +450,7 @@ public final class Main extends JavaPlugin implements Listener {
                 shooter.sendMessage(prefix + " You just got 50 points!");
                 int points = 50;
                 int balance = user.getInt(".balance");
-                user.set(".balance",balance+points);
+                user.set(".balance", balance + points);
                 saveConfig();
             }
         }

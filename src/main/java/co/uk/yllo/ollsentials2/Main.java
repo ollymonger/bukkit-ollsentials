@@ -48,7 +48,7 @@ public final class Main extends JavaPlugin implements Listener {
         getLogger().info("Plugin: Ollsentials now enabled");
         getLogger().info("Plugin Version: " + getDescription().getVersion());
         getLogger().info("Last Updated: (20/08/19)");
-        getLogger().info("Most Recent Update: Arrow minigame implemented > Fixed spawn world protection.");
+        getLogger().info("Most Recent Update: Players can no longer move whilst playing minigame.");
         getData();
     }
 
@@ -398,15 +398,10 @@ public final class Main extends JavaPlugin implements Listener {
             }
         }
         if (arrowGameList.contains(player.getName())) {
-            if (e.getFrom().getBlockX() != e.getTo().getBlockX()) {
+            if(e.getFrom().getX() != e.getTo().getX() || e.getFrom().getZ() != e.getTo().getZ()) { // full block }
                 player.sendMessage(prefix + " You're still playing the minigame! Right-click the sign to finish!");
-
-                player.teleport(e.getFrom().getBlock().getLocation());
-            }
-            if (e.getFrom().getBlockY() != e.getTo().getBlockY()) {
-                player.sendMessage(prefix + " You're still playing the minigame! Right-click the sign to finish!");
-
-                player.teleport(e.getFrom().getBlock().getLocation());
+                Location oldLocation = new Location(player.getWorld(), e.getFrom().getX(), e.getFrom().getY(), e.getFrom().getZ());
+                player.teleport(oldLocation);
             }
         }
     }

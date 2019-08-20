@@ -2,11 +2,13 @@ package co.uk.yllo.ollsentials2;
 
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -39,13 +41,14 @@ public final class Main extends JavaPlugin implements Listener {
     private String prefix = ChatColor.translateAlternateColorCodes('&', String.valueOf(this.getConfig().getStringList("prefix")));
     private static ArrayList<String> spawnProtection = new ArrayList<>();
     private static ArrayList<String> outOfSpawnProtection = new ArrayList<>();
+    private static ArrayList<String> arrowGameList = new ArrayList<>();
 
     @Override
     public void onEnable() {
         getLogger().info("Plugin: Ollsentials now enabled");
         getLogger().info("Plugin Version: " + getDescription().getVersion());
-        getLogger().info("Last Updated: (19/08/19)");
-        getLogger().info("Most Recent Update: Buy/Sell signs implemented.");
+        getLogger().info("Last Updated: (20/08/19)");
+        getLogger().info("Most Recent Update: Arrow minigame implemented > Fixed spawn world protection.");
         getData();
     }
 
@@ -349,6 +352,27 @@ public final class Main extends JavaPlugin implements Listener {
                             getLogger().info("Sign incorrectly set up");
                         }
                     } // sell sign
+                    if (sign.getLine(0).contains("[PLAY]") || sign.getLine(0).contains("[play]")) {
+                        if(sign.getLine(1).contains("TARGET") || sign.getLine(1).contains("target")) {
+                            String price = sign.getLine(2);
+                            int userBalance = user.getInt(".balance");
+                            if (!arrowGameList.contains(player.getName())) {
+                                player.sendMessage(prefix + " Welcome to target practice!");
+                                Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> player.sendMessage(prefix + " Your points will add up and give you an amount which will go into your balance!"), 5L);
+                                Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> player.sendMessage(prefix + " White wool: 5 points"), 10L);
+                                Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> player.sendMessage(prefix + ChatColor.RED + " Red" + ChatColor.WHITE + " wool: 10 points"), 10L);
+                                Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> player.sendMessage(prefix + ChatColor.GREEN + " Green" + ChatColor.WHITE + " wool: 20 points"), 10L);
+                                Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> player.sendMessage(prefix + ChatColor.YELLOW + " Yellow" + ChatColor.WHITE + " wool: 50 points"), 10L);
+                                arrowGameList.add(player.getName());
+                                int result = userBalance - Integer.valueOf(price);
+                                user.set(".balance", result);
+                                saveConfig();
+                            } else {
+                                player.sendMessage(prefix + " Thanks for playing target practice! Come back soon!");
+                                arrowGameList.remove(player.getName());
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -371,6 +395,51 @@ public final class Main extends JavaPlugin implements Listener {
                 outOfSpawnProtection.add(player.getName());
                 player.getWorld().setPVP(true);
                 player.sendMessage(prefix + " You have left the spawn protection radius!");
+            }
+        }
+    }
+
+    @EventHandler
+    public void arrowGame(ProjectileHitEvent e) {
+        Player shooter = (Player) e.getEntity().getShooter();
+        ConfigurationSection user = this.getConfig().getConfigurationSection("users").getConfigurationSection("user_" + shooter.getUniqueId().toString());
+
+        if(arrowGameList.contains(shooter.getName())) {
+            if (e.getHitBlock().getType() == Material.WHITE_WOOL) {
+                Location shooterLoc = new Location(shooter.getWorld(), shooter.getLocation().getX(), shooter.getLocation().getY(), shooter.getLocation().getZ());
+                shooter.playSound(shooterLoc, Sound.ENTITY_PLAYER_LEVELUP, 1.18F, 1);
+                shooter.sendMessage(prefix + " You just got 5 points!");
+                int points = 5;
+                int balance = user.getInt(".balance");
+                user.set(".balance",balance+points);
+                saveConfig();
+            }
+            if (e.getHitBlock().getType() == Material.RED_WOOL) {
+                Location shooterLoc = new Location(shooter.getWorld(), shooter.getLocation().getX(), shooter.getLocation().getY(), shooter.getLocation().getZ());
+                shooter.playSound(shooterLoc, Sound.ENTITY_PLAYER_LEVELUP, 1.18F, 1);
+                shooter.sendMessage(prefix + " You just got 10 points!");
+                int points = 10;
+                int balance = user.getInt(".balance");
+                user.set(".balance",balance+points);
+                saveConfig();
+            }
+            if (e.getHitBlock().getType() == Material.GREEN_WOOL) {
+                Location shooterLoc = new Location(shooter.getWorld(), shooter.getLocation().getX(), shooter.getLocation().getY(), shooter.getLocation().getZ());
+                shooter.playSound(shooterLoc, Sound.ENTITY_PLAYER_LEVELUP, 1.18F, 1);
+                shooter.sendMessage(prefix + " You just got 20 points!");
+                int points = 20;
+                int balance = user.getInt(".balance");
+                user.set(".balance",balance+points);
+                saveConfig();
+            }
+            if (e.getHitBlock().getType() == Material.YELLOW_WOOL) {
+                Location shooterLoc = new Location(shooter.getWorld(), shooter.getLocation().getX(), shooter.getLocation().getY(), shooter.getLocation().getZ());
+                shooter.playSound(shooterLoc, Sound.ENTITY_PLAYER_LEVELUP, 1.18F, 1);
+                shooter.sendMessage(prefix + " You just got 50 points!");
+                int points = 50;
+                int balance = user.getInt(".balance");
+                user.set(".balance",balance+points);
+                saveConfig();
             }
         }
     }

@@ -40,4 +40,14 @@ public class OllsentialsWarps implements Listener {
             Main.getPlugin().saveConfig();
         }
     }
+    public void deleteWarp(String warpName, Player p) { // adds group for name inserted on cmd
+        ConfigurationSection allWarps = Main.getPlugin().getConfig().getConfigurationSection("warps");
+        if (!allWarps.contains("warp_" + warpName)) {
+            getLog.info("doesnt exist");
+        } else {
+            getLog.info("called delete warp with " + warpName);
+            allWarps.set("warp_" + warpName, null);
+            Main.getPlugin().saveConfig();
+        }
+    }
 }

@@ -165,6 +165,17 @@ public final class Main extends JavaPlugin implements Listener {
             List<String> selectedGroup = allGroups.getStringList(".groupPermissions");
             if (selectedGroup.contains("admin.basic")) {
                 warps.createWarp(args[0], player.getPlayer());
+                sender.sendMessage(prefix + " Created warp: "+ args[0]);
+            }
+        }
+        if (cmd.getName().equalsIgnoreCase("deletewarp")) {
+            ConfigurationSection user = this.getConfig().getConfigurationSection("users").getConfigurationSection("user_" + player.getUniqueId().toString());
+            String userGroup = user.getString(".group");
+            ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups").getConfigurationSection("group_" + userGroup);
+            List<String> selectedGroup = allGroups.getStringList(".groupPermissions");
+            if (selectedGroup.contains("admin.basic")) {
+                warps.deleteWarp(args[0], player.getPlayer());
+                sender.sendMessage(prefix + " Deleted warp: "+ args[0]);
             }
         }
 

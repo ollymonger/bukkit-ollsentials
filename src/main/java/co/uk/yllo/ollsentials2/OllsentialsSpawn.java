@@ -3,32 +3,21 @@ package co.uk.yllo.ollsentials2;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.UUID;
-import java.util.logging.Logger;
 
 public class OllsentialsSpawn implements Listener {
     private Main plugin;
-    public static OllsentialsSpawn instance;
-    Server server = Main.getPlugin().getServer();
-    Logger getLog = Main.getPlugin().getLogger();
 
     public OllsentialsSpawn(Main plugin){
         this.plugin=plugin;
@@ -39,8 +28,40 @@ public class OllsentialsSpawn implements Listener {
     private static ArrayList<String> arrowGameList = new ArrayList<>();
     private static ArrayList<String> hordeGameList = new ArrayList<>();
     private static ArrayList<Block> blocksRadius = new ArrayList<>();
-    private static ArrayList<NamespacedKey> zombies = new ArrayList<>();
     private String prefix = ChatColor.translateAlternateColorCodes('&', String.valueOf(Main.getPlugin().getConfig().getStringList("prefix")));
+
+    @EventHandler
+    public void checkBlockPlaced(BlockPlaceEvent blockPlaceEvent) {
+        Player player = blockPlaceEvent.getPlayer();
+        ConfigurationSection user = Main.getPlugin().getConfig().getConfigurationSection("users").getConfigurationSection("user_" + player.getUniqueId().toString());
+        String userGroup = user.getString(".group");
+        ConfigurationSection allGroups = Main.getPlugin().getConfig().getConfigurationSection("groups");
+        ConfigurationSection specificGroup = allGroups.getConfigurationSection("group_" + userGroup);
+        List<String> groupPermission = specificGroup.getStringList(".groupPermissions");
+        if (!groupPermission.contains("admin.hammer")) {
+            if (player.getLocation().distanceSquared(player.getWorld().getSpawnLocation()) < Math.pow(Main.getPlugin().getServer().getSpawnRadius(), 3)) {
+                blockPlaceEvent.setCancelled(true);
+                player.sendMessage(prefix + " You cannot place this block!");
+
+            }
+        }
+    }
+
+    @EventHandler
+    public void checkBlockBroken(BlockBreakEvent blockBreakEvent) {
+        Player player = blockBreakEvent.getPlayer();
+        ConfigurationSection user = Main.getPlugin().getConfig().getConfigurationSection("users").getConfigurationSection("user_" + player.getUniqueId().toString());
+        String userGroup = user.getString(".group");
+        ConfigurationSection allGroups = Main.getPlugin().getConfig().getConfigurationSection("groups");
+        ConfigurationSection specificGroup = allGroups.getConfigurationSection("group_" + userGroup);
+        List<String> groupPermission = specificGroup.getStringList(".groupPermissions");
+        if (!groupPermission.contains("admin.hammer")) {
+            if (player.getLocation().distanceSquared(player.getWorld().getSpawnLocation()) < Math.pow(Main.getPlugin().getServer().getSpawnRadius(), 3)) {
+                blockBreakEvent.setCancelled(true);
+                player.sendMessage(prefix + " You cannot break this block!");
+            }
+        }
+    }
 
     @EventHandler
     public void checkPlayerInArea(PlayerMoveEvent e) {

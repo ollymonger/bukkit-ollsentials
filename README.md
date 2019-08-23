@@ -42,4 +42,6 @@ Essentials plugin for a semi-vanilla experience.
 ### 19/08/2019 - Buy/Sell signs now implemented.
 ### 19/08/2019 - Players can no longer place/break blocks in spawn radius.
 ### 20/08/2019 - Target Practice minigame implemented, can be placed anywhere but needs a [PLAY] sign to use > Spawn world protection fixed.
+### 23/08/2019 - Plugin split up into multiple class files.
+### 23/08/2019 - Warp commands implemented.
 

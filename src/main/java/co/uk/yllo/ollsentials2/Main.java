@@ -1,7 +1,5 @@
 package co.uk.yllo.ollsentials2;
 
-import org.bukkit.block.Block;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -66,39 +64,6 @@ public final class Main extends JavaPlugin implements Listener {
             allWarps.set("warp_" + warpName + ".warpZ", p.getLocation().getZ());
             getLogger().info("called create warp with " + warpName);
             saveConfig();
-        }
-    }
-
-    @EventHandler
-    public void checkBlockPlaced(BlockPlaceEvent blockPlaceEvent) {
-        Player player = blockPlaceEvent.getPlayer();
-        ConfigurationSection user = this.getConfig().getConfigurationSection("users").getConfigurationSection("user_" + player.getUniqueId().toString());
-        String userGroup = user.getString(".group");
-        ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups");
-        ConfigurationSection specificGroup = allGroups.getConfigurationSection("group_" + userGroup);
-        List<String> groupPermission = specificGroup.getStringList(".groupPermissions");
-        if (!groupPermission.contains("admin.hammer")) {
-            if (player.getLocation().distanceSquared(player.getWorld().getSpawnLocation()) < Math.pow(getServer().getSpawnRadius(), 3)) {
-                blockPlaceEvent.setCancelled(true);
-                player.sendMessage(prefix + " You cannot place this block!");
-
-            }
-        }
-    }
-
-    @EventHandler
-    public void checkBlockBroken(BlockBreakEvent blockBreakEvent) {
-        Player player = blockBreakEvent.getPlayer();
-        ConfigurationSection user = this.getConfig().getConfigurationSection("users").getConfigurationSection("user_" + player.getUniqueId().toString());
-        String userGroup = user.getString(".group");
-        ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups");
-        ConfigurationSection specificGroup = allGroups.getConfigurationSection("group_" + userGroup);
-        List<String> groupPermission = specificGroup.getStringList(".groupPermissions");
-        if (!groupPermission.contains("admin.hammer")) {
-            if (player.getLocation().distanceSquared(player.getWorld().getSpawnLocation()) < Math.pow(getServer().getSpawnRadius(), 3)) {
-                blockBreakEvent.setCancelled(true);
-                player.sendMessage(prefix + " You cannot break this block!");
-            }
         }
     }
 

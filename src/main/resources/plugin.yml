@@ -30,6 +30,12 @@ commands:
   addpermission:
     description: add permission to group.
     usage: /<command> <username> <groupname>
+  setwarp:
+      description: creates a warp point.
+      usage: /<command> <warpname>
   name:
       description: changes your displayname.
       usage: /<command> <username>
+  user:
+      description: changes your displayname.
+      usage: /<command>

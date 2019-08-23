@@ -25,6 +25,7 @@ public final class Main extends JavaPlugin implements Listener {
     private OllsentialsUser user;
     private OllsentialsGames games;
     private OllsentialsSpawn spawn;
+    private OllsentialsWarps warps;
 
     //To access the plugin variable from other classes
     public static Plugin getPlugin() {
@@ -38,33 +39,20 @@ public final class Main extends JavaPlugin implements Listener {
         getLogger().info("Last Updated: (20/08/19)");
         getLogger().info("Most Recent Update: Players can no longer move whilst playing minigame.");
         plugin = this;
+
+        Bukkit.getPluginManager().registerEvents(new OllsentialsConfig(), this);
         Bukkit.getPluginManager().registerEvents(new OllsentialsUser(this), this);
         Bukkit.getPluginManager().registerEvents(new OllsentialGroups(), this);
-        Bukkit.getPluginManager().registerEvents(new OllsentialsConfig(), this);
         Bukkit.getPluginManager().registerEvents(new OllsentialsSpawn(this), this);
+        Bukkit.getPluginManager().registerEvents(new OllsentialsWarps(this), this);
         Bukkit.getPluginManager().registerEvents(new OllsentialsGames(this), this);
 
         this.instance = new OllsentialsConfig();
+        this.user = new OllsentialsUser(this);
         this.groups = new OllsentialGroups();
         this.spawn = new OllsentialsSpawn(this);
-        this.user = new OllsentialsUser(this);
+        this.warps = new OllsentialsWarps(this);
         this.games = new OllsentialsGames(this);
-    }
-
-
-    private void createWarp(String warpName, Player p) { // adds group for name inserted on cmd
-        ConfigurationSection allWarps = this.getConfig().getConfigurationSection("warps");
-        if (allWarps.contains("warp_" + warpName)) {
-            getLogger().info("already exists");
-        } else {
-            allWarps.set("warp_" + warpName + ".warpName", warpName);
-            allWarps.set("warp_" + warpName + ".warpWorld", p.getLocation().getWorld().getName());
-            allWarps.set("warp_" + warpName + ".warpX", p.getLocation().getX());
-            allWarps.set("warp_" + warpName + ".warpY", p.getLocation().getY());
-            allWarps.set("warp_" + warpName + ".warpZ", p.getLocation().getZ());
-            getLogger().info("called create warp with " + warpName);
-            saveConfig();
-        }
     }
 
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -176,7 +164,18 @@ public final class Main extends JavaPlugin implements Listener {
             ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups").getConfigurationSection("group_" + userGroup);
             List<String> selectedGroup = allGroups.getStringList(".groupPermissions");
             if (selectedGroup.contains("admin.basic")) {
-                createWarp(args[0], player.getPlayer());
+                warps.createWarp(args[0], player.getPlayer());
+                sender.sendMessage(prefix + " Created warp: "+ args[0]);
+            }
+        }
+        if (cmd.getName().equalsIgnoreCase("deletewarp")) {
+            ConfigurationSection user = this.getConfig().getConfigurationSection("users").getConfigurationSection("user_" + player.getUniqueId().toString());
+            String userGroup = user.getString(".group");
+            ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups").getConfigurationSection("group_" + userGroup);
+            List<String> selectedGroup = allGroups.getStringList(".groupPermissions");
+            if (selectedGroup.contains("admin.basic")) {
+                warps.deleteWarp(args[0], player.getPlayer());
+                sender.sendMessage(prefix + " Deleted warp: "+ args[0]);
             }
         }
 
@@ -301,19 +300,19 @@ public final class Main extends JavaPlugin implements Listener {
             String userGroup = user.getString(".group");
             ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups").getConfigurationSection("group_" + userGroup);
             List<String> selectedGroup = allGroups.getStringList(".groupPermissions");
-            if (selectedGroup.contains("basic.home")) {
+            if (selectedGroup.contains("basic.user")) {
 
                 ConfigurationSection users = this.getConfig().getConfigurationSection("users");
                 if (user.getString("homepos.world").contains("null")) {
                     sender.sendMessage(prefix + " Please use the command: /sethome before trying to go home!");
                 } else {
-                    String worldEx = users.getString("homepos.world");
+                    String worldEx = user.getString("homepos.world");
                     World world = this.getServer().getWorld(String.valueOf(worldEx));
-                    double x = users.getDouble(".homepos.x");
-                    double y = users.getDouble(".homepos.y");
-                    double z = users.getDouble(".homepos.z");
-                    float yaw = (float) users.getDouble(".homepos.yaw");
-                    float pitch = (float) users.getDouble(".homepos.pitch");
+                    double x = user.getDouble(".homepos.x");
+                    double y = user.getDouble(".homepos.y");
+                    double z = user.getDouble(".homepos.z");
+                    float yaw = (float) user.getDouble(".homepos.yaw");
+                    float pitch = (float) user.getDouble(".homepos.pitch");
 
                     Location sendHome = new Location(world, x, y, z, yaw, pitch);
                     sendHome.setYaw(yaw);
@@ -323,6 +322,33 @@ public final class Main extends JavaPlugin implements Listener {
                 }
             } else {
                 sender.sendMessage(prefix + " You don't have permission for this command!");
+            }
+        }
+        if (cmd.getName().equalsIgnoreCase("warp")) {
+            ConfigurationSection user = this.getConfig().getConfigurationSection("users").getConfigurationSection("user_" + player.getUniqueId().toString());
+            String userGroup = user.getString(".group");
+            ConfigurationSection allGroups = this.getConfig().getConfigurationSection("groups").getConfigurationSection("group_" + userGroup);
+            List<String> selectedGroup = allGroups.getStringList(".groupPermissions");
+            ConfigurationSection allWarps = this.getConfig().getConfigurationSection("warps");
+            if(selectedGroup.contains("basic.user"))
+            if (args.length == 0) {
+                ArrayList<String> allNames = new ArrayList<>();
+                for (String key : allWarps.getKeys(false)) {
+                    String value = allWarps.getString(key + ".warpName");
+                    allNames.add(value);
+                }
+                sender.sendMessage(prefix + " Warpnames: " + allNames.toString());
+            } else {
+                ConfigurationSection specificWarp = allWarps.getConfigurationSection("warp_" + args[0]);
+                String warpName = specificWarp.getString("warpName");
+                String warpWorld = specificWarp.getString("warpWorld");
+                World world = this.getServer().getWorld(warpWorld);
+                double warpX = specificWarp.getDouble("warpX");
+                double warpY = specificWarp.getDouble("warpY");
+                double warpZ = specificWarp.getDouble("warpZ");
+                Location warpLoc = new Location(world, warpX, warpY, warpZ);
+                sender.sendMessage(prefix + " Sending you to warp: "+warpName);
+                Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> player.teleport(warpLoc), 50L); // delay of 5s
             }
         }
 

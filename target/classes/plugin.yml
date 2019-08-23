@@ -33,9 +33,12 @@ commands:
   setwarp:
       description: creates a warp point.
       usage: /<command> <warpname>
+  deletewarp:
+      description: creates a warp point.
+      usage: /<command> <warpname>
   name:
       description: changes your displayname.
       usage: /<command> <username>
-  user:
-      description: changes your displayname.
-      usage: /<command>
+  warp:
+      description: shows a list of all warps.
+      usage: /<command> <warpname>
